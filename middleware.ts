@@ -36,12 +36,27 @@ export async function middleware(request: NextRequest) {
 
   const { data: { session } } = await supabase.auth.getSession();
 
-  // If there's no session and the user is trying to access a protected route
-  if (!session && request.nextUrl.pathname.startsWith('/dashboard')) {
+  // Define protected routes that require authentication
+  const protectedRoutes = [
+    '/dashboard',
+    '/settings',
+    '/users',
+    '/reports',
+    '/orders',
+    '/products',
+  ];
+
+  // Check if the current path is a protected route
+  const isProtectedRoute = protectedRoutes.some(route => 
+    request.nextUrl.pathname.startsWith(route)
+  );
+
+  // If trying to access a protected route without authentication
+  if (isProtectedRoute && !session) {
     return NextResponse.redirect(new URL('/login', request.url));
   }
 
-  // If there's a session and the user is trying to access the login page
+  // If trying to access login page while authenticated
   if (session && request.nextUrl.pathname === '/login') {
     return NextResponse.redirect(new URL('/dashboard', request.url));
   }
@@ -50,5 +65,13 @@ export async function middleware(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ['/dashboard/:path*', '/login'],
+  matcher: [
+    '/dashboard/:path*',
+    '/settings/:path*',
+    '/users/:path*',
+    '/reports/:path*',
+    '/orders/:path*',
+    '/products/:path*',
+    '/login',
+  ],
 }; 
